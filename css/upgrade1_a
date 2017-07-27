@@ -1,0 +1,24 @@
+<!DICTYPE html>
+<html>
+<head>
+	<title>JavaScript - JavaScrit란?</title>
+	<meta charset="urt-8">
+</head>
+<body>
+	<header>
+		<h1><a href="http://localhost/TEST.html">JavaScript</a></h1>
+	</header>
+	<nav>
+		<ol>
+			<li><a href="http://localhost/page_html.html">JavaScript란?</a></li>
+			<li><a href="http://localhost/page_vc.html">변수와 상수</a></li>
+			<li><a href="http://localhost/page_op.html">연산자</a></li>  
+		</ol>
+	</nav>
+	<article>
+		<h2>JavaScript란?</h2>
+		JavaScript는 웹페이지를 프로그래밍적으로 제어하는 언어입니다.
+		<br><a href="http://terms.naver.com/entry.nhn?docId=3580851&cid=59088&categoryId=59096">자세히 알아보기...</a>  
+	</article>
+</body>
+</html>
