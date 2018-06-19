@@ -1,327 +1,332 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<!DOCTYPE html>
+
+<html lang="ko">
+<head><title>
+ 금학기성적조회
+</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge" /><link rel="stylesheet" type="text/css" href="/Common/css/StyleF.css" /><link rel="stylesheet" type="text/css" href="/Common/css/Common.css" /><link rel="stylesheet" type="text/css" href="/Common/Css/jquery-ui.css" />
+    
+    <script type="text/javascript" src="/Common/js/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript">
+        //2017-03-02 RED
+        //jqeury 에서 fn.load=function(a,b,c){var d,e,f,g=this,h=a.indexOf(" "); 등에서
+        //Object doesn't support property or method 'indexOf' 오류가 발생함에 따라 아래에 구분 추가
+        jQuery.fn.load = function (callback) { $(window).on("load", callback) };
+    </script>
+    <script type="text/javascript" src="/Common/Js/jquery-ui.js"></script>
+    
+    <script type="text/javascript" src="/Common/js/script.js"></script>
+    
+    
+    
+    <script type="text/javascript" src="/Common/Scripts/CommonMessage.js"></script>
+    
+    <script type="text/javascript" src="/Common/Js/gibberish-aes.js"></script>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            if (fn_returnUrlParams('pid') != null && fn_returnUrlParams('pid') != '666')
+                parent.fn_setMenuTitle(fn_returnUrlParams('pid'));
+            else if (fn_returnUrlParams('pgm') != null)
+                parent.fn_setMenuTitle(fn_returnUrlParams('pgm'));
+
+            $('.divStyle01').each(function () {
+                if (fn_returnUrlParams('pid') != null && fn_returnUrlParams('pid').toLowerCase().indexOf('r') < 0) {
+                    if ($(this).height() < 1)
+                        $(this).css('display', 'none');
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <form method="post" action="./USB0301Q.aspx?mdv=STD&amp;pid=Usb0301q" id="Usb0301qF">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwULLTExNDA2MTA4NjIPFgQeEEN1cnJlbnRQYWdlSW5kZXhmHhNWYWxpZGF0ZVJlcXVlc3RNb2RlAgEWAmYPZBYCAgMPZBYCAgEPZBYSZg8PFgIeB1Zpc2libGVoZGQCAg8PFgIfAmgWAh4Hb25jbGljawWdBCBpZiAod2luZG93LmV2ZW50LnNyY0VsZW1lbnQpIHsgdmFyIGJvb2xfZmxhZyA9IHRydWU7ICBpZihkb2N1bWVudC5mb3Jtc1swXS5DUDFfdHh0X3llYXIgIT0gbnVsbCApeyBib29sX2ZsYWcgPSBkb2N1bWVudC5mb3Jtc1swXS5DUDFfdHh0X3llYXIudmFsaWRhdGUoKTsgaWYoYm9vbF9mbGFnID09IGZhbHNlKXsgcmV0dXJuIGZhbHNlOyB9IH0gaWYoZG9jdW1lbnQuZm9ybXNbMF0uQ1AxX2RkbF9zbXQgIT0gbnVsbCApeyBib29sX2ZsYWcgPSBEcm9wZG93bkxpc3RWYWxpZGF0ZShkb2N1bWVudC5mb3Jtc1swXS5DUDFfZGRsX3NtdCk7IGlmKGJvb2xfZmxhZyA9PSBmYWxzZSl7IHJldHVybiBmYWxzZTsgfSB9IGlmKGRvY3VtZW50LmZvcm1zWzBdLkNQMV90eHRfc3R1ZGVudF9jZCAhPSBudWxsICl7IGJvb2xfZmxhZyA9IGRvY3VtZW50LmZvcm1zWzBdLkNQMV90eHRfc3R1ZGVudF9jZC52YWxpZGF0ZSgpOyBpZihib29sX2ZsYWcgPT0gZmFsc2UpeyByZXR1cm4gZmFsc2U7IH0gfSByZXR1cm4gYm9vbF9mbGFnOyB9ICBlbHNlIHJldHVybiBmYWxzZTtkAgMPDxYCHwJoZGQCBQ8PFgQeBFRleHQFBDIwMTgeB0VuYWJsZWRoZGQCBg8QDxYIHg1EYXRhVGV4dEZpZWxkBQlJVEVNX0RFU0MeDkRhdGFWYWx1ZUZpZWxkBQlTTUFMTF9ESVYeC18hRGF0YUJvdW5kZx8FaGQQFQUM7ISg7YOd7JWI7ZWoCjEwIDHtlZnquLAVMTEg7ZWY6rOE6rOE7KCI7IiY7JeFCjIwIDLtlZnquLAVMjEg64+Z6rOE6rOE7KCI7IiY7JeFFQUAAjEwAjExAjIwAjIxFCsDBWdnZ2dnFgECAWQCBw8PFgIf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" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['Usb0301qF'];
+if (!theForm) {
+    theForm = document.Usb0301qF;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<div class="aspNetHidden">
+ <input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="55AEE6D9" />
+ <input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEdAA2+vKw9Hqssm8RCDC7oqWg3p7dzlfojAmh9XatuwuR3b1WNsu/b+otq6N9uoGtXLGheiaFhn/yrg7eAyPpVt2sVbLrhLgjmL4gkSmXx63hrP+829HGD5FSuq5w0V2HxUdCd/NxfYA1evxyhllh/KWoaeJG21XAQGKmp/HPROkjU/ssvPEf/yfatJgF2hKVJ4Ki/1o/u+Rgx/yXBfm0tBD5In7ZGERS786sdtM3ObsEM2N5bAu9kVtfMZNa5BpYJHJRimBY6CClMu/qf8SuMxJ5umiB1anRSl6b1ZOFqURwLMGGOMSU=" />
+</div>
+        
+    <div class="form-md">
+        <div class="divStyle01">
+            <div class="btnArea">
+                <div class="fltlft">
+                    
+                </div>
+                
+                
+                
+                <input type="submit" name="ctl00$CP1$BtnList" value="목록" id="CP1_BtnList" title="목록" class="skip" />
+            </div>
+        </div>
+        <div class="divStyle01">
+            <table class="TableStyle01" summary="조건부">
+                <caption>조건부</caption>
+                <colgroup>
+                    <col style="width:10%" />
+                    <col style="width:15%" />
+                    <col style="width:10%" />
+                    <col style="width:15%" />
+                    <col style="width:10%" />
+                    <col style="width:15%" />
+                    <col style="width:25%" />
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row" class="textWrap">
+                            <label for="CP1_txt_year">년도</label>
+                        </th>
+                        <td>
+                            <div class="inputWrap">
+                                <input name="ctl00$CP1$txt_year" type="text" value="2018" maxlength="4" id="CP1_txt_year" disabled="disabled" class="aspNetDisabled" urppilsu="" enter_move_focus="" />
+                            </div>
+                        </td>
+                        <th scope="row" class="textWrap">
+                            <label for="CP1_ddl_smt">학기</label>
+                        </th>
+                        <td>
+                            <div class="inputWrap">
+                                <select name="ctl00$CP1$ddl_smt" id="CP1_ddl_smt" disabled="disabled" class="aspNetDisabled" urppilsu="" enter_move_focus="" style="width:100%;">
+ <option value="">선택안함</option>
+ <option selected="selected" value="10">10 1학기</option>
+ <option value="11">11 하계계절수업</option>
+ <option value="20">20 2학기</option>
+ <option value="21">21 동계계절수업</option>
+</select>
+                            </div>
+                        </td>
+                        <th scope="row" class="textWrap">
+                            <label for="CP1_txt_student_cd">학번</label>
+                        </th>
+                        <td>
+                            <div class="inputWrap">
+                                
+                                <input name="ctl00$CP1$txt_student_cd" type="text" value="20183140" maxlength="9" id="CP1_txt_student_cd" disabled="disabled" class="aspNetDisabled input_enter" urppilsu="" onkeypress="if (event.keyCode == 13) {__doPostBack(&#39;ctl00$CP1$BtnOk&#39;,&#39;&#39;); return false;}" style="width:83%;" />
+                            </div>
+                        </td>
+                        <td class="bg-color01"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="CP1_tbl_info" class="divStyle01">
+            <table class="TableStyle01" summary="학생정보">
+                <caption>학생정보</caption>
+                <colgroup>
+                    <col style="width: 10%" />
+                    <col style="width: 15%" />
+                    <col style="width: 10%" />
+                    <col style="width: 15%" />
+                    <col style="width: 10%" />
+                    <col style="width: 15%" />
+                    <col style="width: 10%" />
+                    <col style="width: 15%" />
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row" class="textWrap">년도</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_year">&nbsp;2018</span>
+                        </td>
+                        <th class="textWrap" scope="row">학기</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_smt">&nbsp;1학기</span>
+                        </td>
+                        <th class="textWrap" scope="row">학번</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_stdt_cd">&nbsp;20183140</span>
+                        </td>
+                        <th class="textWrap" scope="row">성명</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_stdt_nm">&nbsp;김준</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="textWrap" scope="row">학년
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_stdt_yr_nm">&nbsp;1</span>
+                        </td>
+                        <th class="textWrap" scope="row">주야
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_stdt_cls_nm">&nbsp;주간</span>
+                        </td>
+                        <th class="textWrap" scope="row">학적상태
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_stdt_sts_nm">&nbsp;재학</span>
+                        </td>
+                        <th class="textWrap" scope="row">성별
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_stdt_sex_nm">&nbsp;남자</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="textWrap" scope="row">대학
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_col_nm">&nbsp;ICT공과대학</span>
+                        </td>
+                        <th class="textWrap" scope="row">학부/과
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_dept_nm">&nbsp;창의소프트웨어공학부</span>
+                        </td>
+                        <th class="textWrap" scope="row">전공
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_mjr_nm">&nbsp;</span>
+                        </td>
+                        <th class="textWrap" scope="row">교직
+                        </th>
+                        <td>
+                            <div class="inputWrap Center">
+                                <input id="CP1_chb_teach_fg" type="checkbox" name="ctl00$CP1$chb_teach_fg" onclick="document.all[&#39;CP1_chb_teach_fg&#39;].checked = !document.all[&#39;CP1_chb_teach_fg&#39;].checked;" />
+                                <span id="CP1_lbl_teach_subject_nm"></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="textWrap" scope="row">
+                            
+                            복수전공
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_double_nm">&nbsp;</span>
+                        </td>
+                        <th class="textWrap" scope="row">
+                            
+                            부전공
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_mnr_nm">&nbsp;</span>
+                        </td>
+                        <th class="textWrap" scope="row">
+                            
+                            연계전공
+                        </th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_link_nm">&nbsp;</span>
+                        </td>
+                        <th class="textWrap" scope="row">평생교육
+                        </th>
+                        <td>
+                            <div class="inputWrap Center">
+                                <input id="CP1_chb_life_fg" type="checkbox" name="ctl00$CP1$chb_life_fg" onclick="document.all[&#39;CP1_chb_life_fg&#39;].checked = !document.all[&#39;CP1_chb_life_fg&#39;].checked;" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="textWrap" scope="row">직전신청학점</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_pre_apply_pt">&nbsp;</span>
+                        </td>
+                        <th class="textWrap" scope="row">직전평균평점</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_pre_avg_pt">&nbsp;</span>
+                        </td>
+                        <th class="textWrap" scope="row">총취득학점</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_all_pt">&nbsp;</span>
+                        </td>
+                        <th class="textWrap" scope="row">신청가능학점</th>
+                        <td class="textWrap">
+                            <span id="CP1_lbl_poss_pt">&nbsp;21.75</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="CP1_tbl_list">
+ 
+            <div class="divStyle01">
+                <div class="SmallTitle">
+                    신청과목수 :
+                <span id="CP1_lbl_apply_cnt">8</span>&nbsp;&nbsp;
+                    신청학점 :
+                <span id="CP1_lbl_apply_sum">19.00</span>학점
+                </div>
+                <div>
+  <table class="TableStyle01 TableMouseOver" cellspacing="0" summary="프로그램 목록입니다. (교과목번호, 분반, 교과목명, 이수구분, 학점, 취득점수, 성적, 평점, 담당교수, 비고)" id="CP1_dt_result" style="border-collapse:collapse;">
+   <caption>
+    프로그램 목록입니다.
+   </caption><thead>
+    <tr>
+     <th class="textWrap text-nowrap" scope="col" style="width:8%;">교과목번호</th><th class="textWrap text-nowrap" scope="col" style="width:6%;">분반</th><th class="textWrap text-nowrap" scope="col" style="width:23%;">교과목명</th><th class="textWrap text-nowrap" scope="col" style="width:8%;">이수구분</th><th class="textWrap text-nowrap" scope="col" style="width:6%;">학점</th><th class="textWrap text-nowrap" scope="col" style="width:6%;">취득점수</th><th class="textWrap text-nowrap" scope="col" style="width:6%;">성적</th><th class="textWrap text-nowrap" scope="col" style="width:6%;">평점</th><th class="textWrap text-nowrap" scope="col" style="width:13%;">담당교수</th><th class="textWrap text-nowrap" scope="col" style="width:18%;">비고</th>
+    </tr>
+   </thead><tbody>
+    <tr>
+     <td class="textWrap Center">300129</td><td class="textWrap Center">008</td><td class="textWrap Left">기초수학</td><td class="textWrap Center">계열기초</td><td class="textWrap Center">3.00</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">배정자</td><td class="textWrap Left">&nbsp;</td>
+    </tr><tr>
+     <td class="textWrap Center">100087</td><td class="textWrap Center">005</td><td class="textWrap Left">사회봉사의이해</td><td class="textWrap Center">기본교양</td><td class="textWrap Center">1.00</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">김철민</td><td class="textWrap Left">&nbsp;</td>
+    </tr><tr>
+     <td class="textWrap Center">100108</td><td class="textWrap Center">024</td><td class="textWrap Left">기본영어</td><td class="textWrap Center">기본교양</td><td class="textWrap Center">3.00</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">박지영</td><td class="textWrap Left">&nbsp;</td>
+    </tr><tr>
+     <td class="textWrap Center">100110</td><td class="textWrap Center">033</td><td class="textWrap Left">논리적사유와글쓰기</td><td class="textWrap Center">기본교양</td><td class="textWrap Center">3.00</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">박양리</td><td class="textWrap Left">&nbsp;</td>
+    </tr><tr>
+     <td class="textWrap Center">100111</td><td class="textWrap Center">053</td><td class="textWrap Left">전공탐색과생애설계Ⅰ-Ⅰ</td><td class="textWrap Center">기본교양</td><td class="textWrap Center">1.00</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">권오준</td><td class="textWrap Left">&nbsp;</td>
+    </tr><tr>
+     <td class="textWrap Center">400506</td><td class="textWrap Center">001</td><td class="textWrap Left">컴퓨터개론</td><td class="textWrap Center">전공핵심</td><td class="textWrap Center">3.00</td><td class="textWrap Center">96</td><td class="textWrap Center">A+</td><td class="textWrap Center">13.5</td><td class="textWrap Center">김태석</td><td class="textWrap Left">&nbsp;</td>
+    </tr><tr>
+     <td class="textWrap Center">401428</td><td class="textWrap Center">002</td><td class="textWrap Left">프로그래밍실습Ⅰ</td><td class="textWrap Center">전공핵심</td><td class="textWrap Center">3.00</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">장희숙</td><td class="textWrap Left">&nbsp;</td>
+    </tr><tr>
+     <td class="textWrap Center">200828</td><td class="textWrap Center">001</td><td class="textWrap Left">Python을이용한프로그래밍기초</td><td class="textWrap Center">Bridge교양</td><td class="textWrap Center">2.00</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">&nbsp;</td><td class="textWrap Center">우영운</td><td class="textWrap Left">&nbsp;</td>
+    </tr>
+   </tbody>
+  </table>
+ </div>
+            </div>
+            <div class="divStyle01">
+                
+<div class="PageController">
+     
+     
+     
+    <span id="CP1_COM_Page_Controllor1_spnPage1" class="on"><a id="CP1_COM_Page_Controllor1_lbtnPage1" href="javascript:__doPostBack(&#39;ctl00$CP1$COM_Page_Controllor1$lbtnPage1&#39;,&#39;&#39;)">1</a></span>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+     
+     
+    
+</div>
+<input type="hidden" name="ctl00$CP1$COM_Page_Controllor1$hdnPageCnt" id="CP1_COM_Page_Controllor1_hdnPageCnt" value="1" />
+            </div>
+        
+</div>
+    </div>
 
 
 
