@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/realtimeMonitor.css">
+  <script src="js/jquery-2.2.4.min.js"></script>
+  <!-- <script src="js/realtimeMonitor.js"></script> -->
+
+  <!-- 다음 지도 -->
+  <script type="text/javascript" src="http://apis.daum.net/maps/maps3.js?apikey=f06db548c98701cea74fdd012ba4bbec&libraries=services,clusterer,drawing"></script>
+
+  <title>IoT 스마트 버스 정보 시스템</title>
+
+</head>
+
+<script>
+  // 로그인 시 로그인 정보 획득
+  var temp;
+  var user_id_split;
+  var user_id;
+  var user_pw;
+
+  var infowindow;
+
+  //맨처음 지도 로드 시 초기값 받아오는 변수들
+  // 지도 중심좌표
+  var user_gps_setting_x = 0,
+    user_gps_setting_y = 0;
+  //지도 레벨
+  var user_map_level = 0;
+  //탑승객수
+  var user_smoothmin = 0,
+    user_smoothmax = 0;
+  var user_normalmin = 0,
+    user_normalmax = 0;
+  //온도
+  var user_regularmin = 0,
+    user_regularmax = 0;
+
+  //지도관련 사용 변수
+  var get_gps_x; //버스 위도
+  var get_gps_y; //버스 경도
+  var get_busdirection; //버스 상행, 하행
+  var get_serialid;
+  var get_carterminalid;
+  var get_busdrivingnum;
+  var get_busspeed;
+  var get_usrcnt;
+  var get_thermometertemperature;
+  var get_speakerbusstopid;
+  var get_busroutenum;
+  var get_busroutenum2;
+  var get_buscompany;
+  var get_hygrometerhumidity;
+  var get_gsensor;
+  var get_painc;
+
+  var map; //맵 변수
+  var marker; //마커
+  var markers = []; //다중 마커
+  var markerlist = []; //지도에 올릴 마커 리스트 배열
+  var markerposition = []; //마커 리스트배열 옵션 배열
+  var busicon; //버스 이미지
+  var upimage = './img/upbus_img.png'; //상행 이미지
+  var downimage = './img/downbus_img.png'; //하행이미지
+  var basicimage = './img/basicbus_img.png'; //하행이미지
+  var imageSize = new daum.maps.Size(20, 20); //지도위 버스 이미지 사이즈
+  var imageOption = {
+    offset: new daum.maps.Point(0, 0)
+  }; //버스 이미지 옵션
+
+  //첫 로딩 시 이상징후 차량 저장할 배열 만들기
+  var error_bus_list_array = new Array();
+  var array_check = 0;
+
+  //탑승객 수 체크
+  var one_user_count = 0,
+    two_user_count = 0,
+    three_user_count = 0;
+  //온도 체크
+  var ok_ondo_count = 0,
+    no_ondo_count = 0;
+  //상황발생 현황 체크
+  var gsensor_count = 0,
+    one_panic_count = 0,
+    two_panic_count = 0,
+    three_panic_count = 0;
+  //장애인예약현황 체크
+  var carterminal_id_text, service_text, station_id, busnumber, buslicenseno;
+  var insert_count = 0,
+    delete_count = 0,
+    exit_count = 0;
+
+  //이상징후 차량 테이블 리스트
+  var row;
+  var list_table_one_tbody;
+  var cell1, cell2, cell3, cell4;
+
+  //버튼클릭 시 변수
+  var select_text;
+  var total_text;
+
+  //이상 징후 차량 테이블 클릭 시
+  var row_two, list_table_two_tbody;
+  var time_list, bus_speed, bus_oxygen, bus_absolut, bus_fuellevel, bus_rpm, bus_oil, bus_station, bus_user;
+  var bus_ondo, bus_sumdo, bus_direction, select_bus_gpsx, select_bus_gpsy;
+
+  var time_counting;
+
+  //시스템 시간 받아오는 함수
+  var xmlHttp;
+
+  var runBusCount = 0;
+  var busNumUnqi;
+
+  function srvTime() {
+    if (window.XMLHttpRequest) {
+      xmlHttp = new XMLHttpRequest();
+      xmlHttp.open('HEAD', window.location.href.toString(), false);
+      xmlHttp.setRequestHeader("Content-Type", "text/html");
+      xmlHttp.send('');
+      return xmlHttp.getResponseHeader("Date");
+    } else if (window.ActiveXObject) {
+      xmlHttp = new ActiveXObject('Msxml2.XMLHTTP');
+      xmlHttp.open('HEAD', window.location.href.toString(), false);
+      xmlHttp.setRequestHeader("Content-Type", "text/html");
+      xmlHttp.send('');
+      return xmlHttp.getResponseHeader("Date");
+    }
+  }
+
+  //시스템 시간 받아오기
+  function getTimeStart() {
+    var st = srvTime();
+    var test_today = new Date(st);
+    var ttt = test_today.toString();
+    var test_time = ttt.substring(4, 24);
+    var test_year = test_time.substring(7, 11);
+    var test_mon = test_time.substring(0, 3);
+    var test_day = test_time.substring(4, 6);
+    var test_hms = test_time.substring(12, 21);
+    var test_hm = test_hms.substring(0, 6);
+    var test_s = test_hms.substring(6, 8);
+    //월을 한글로 표시되어서 변환하는 작업
+    if (test_mon == "Jan") {
+      test_mon = "01";
+    }
+    // 테스트용 디비에는 00초, 30초가 있기에 그 사이값을 체크해서 고정값 넣기
+    if (test_s < 30) {
+      test_s = "00";
+    } else {
+      test_s = "30";
+    }
+    time_counting = test_year + "-" + test_mon + "-" + test_day + " " + test_hm + test_s;
+  }
+
+  function mapStart() {
+    //변수 초기화
+    one_user_count = 0, two_user_count = 0, three_user_count = 0;
+    ok_ondo_count = 0, no_ondo_count = 0;
+    gsensor_count = 0, one_panic_count = 0, two_panic_count = 0, three_panic_count = 0;
+    error_bus_list_array = [];
+    array_check = 0;
+    runBusCount = 0;
+    getTimeStart();
+    //운행중인 모든 차량 조회
+    //테이블 정의
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+    //맵 초기화
+    if (markerlist.length > 0) {
+      clusterer.clear();
+      markers = [];
+      markerlist = [];
+      markerposition = [];
+      markerlist.length = 0;
+    }
+
+    map.removeOverlayMapTypeId(daum.maps.MapTypeId.TRAFFIC);
+
+    $("#click_change_name").html("운전자번호");
+    $.ajax({
+      url: '/deuMonitoring_bus_select.php',
+      dataType: 'json',
+      type: 'POST',
+      //실시간 운행 중인 것처럼 보여주기 위한 데이터 전송
+      data: {
+        time_counting: time_counting
+      },
+      async: false,
+      success: function(result) {
+        if (result['result'] == true) {
+
+          get_gps_x = result['gpsx'];
+          get_gps_y = result['gpsy'];
+          get_busdirection = result['busdirection'];
+          get_serialid = result['send_serialid'];
+          get_carterminalid = result['send_carterminalid'];
+          get_busdrivingnum = result['send_busdrivingnum'];
+          get_busspeed = result['send_busspeed'];
+          get_usrcnt = result['send_usrcnt'];
+          get_thermometertemperature = result['send_thermometertemperature'];
+          get_speakerbusstopid = result['send_speakerbusstopid'];
+          get_hygrometerhumidity = result['send_hygrometerhumidity'];
+
+          get_busroutenum = result['send_busroutenum'];
+          get_busroutenum2 = result['send_busroutenum'];
+          get_buscompany = result['send_buscompany'];
+
+          get_gsensor = result['ISWILDDRIVING'];
+          get_painc = result['ISPANICBUTTONPUSHED'];
+
+          for (var i = 0; i < get_gps_x.length; i++) {
+            runBusCount++; //운행 차량 수 받아오기
+            //문자열을 숫자형태로 변환하기 스크립트에서!
+            get_usrcnt[i] = Number(get_usrcnt[i]);
+            get_thermometertemperature[i] = Number(get_thermometertemperature[i]);
+
+            row = list_table_one_tbody.insertRow(list_table_one_tbody);
+
+            //탑승객수 체크 --인원수 체크
+            if (get_usrcnt[i] >= user_smoothmin && get_usrcnt[i] < user_smoothmax) {
+              one_user_count += 1;
+            } else if (get_usrcnt[i] >= user_normalmin && get_usrcnt[i] < user_normalmax) {
+              two_user_count += 1;
+            } else {
+              three_user_count += 1;
+            }
+            //온도 체크
+            if (get_thermometertemperature[i] >= user_regularmin && get_thermometertemperature[i] < user_regularmax) {
+              ok_ondo_count += 1;
+            } else {
+              no_ondo_count += 1;
+            }
+
+            //버스 상행, 하행 체크
+            if (get_busdirection[i] == "1") {
+              busicon = new daum.maps.MarkerImage(basicimage, imageSize, imageOption);
+            } else {
+              busicon = new daum.maps.MarkerImage(basicimage, imageSize, imageOption);
+            }
+            // 돌발발생 체크
+            if (get_gsensor[i] > 0 && (get_painc[i] == 0 || get_painc[i] == 4)) {
+              gsensor_count += 1;
+              cell1 = row.insertCell(0);
+              cell2 = row.insertCell(1);
+              cell3 = row.insertCell(2);
+              cell4 = row.insertCell(3);
+
+              cell1.innerHTML = get_serialid[i];
+              cell2.innerHTML = get_busroutenum[i];
+              cell3.innerHTML = get_busdrivingnum[i];
+              cell4.innerHTML = '난폭';
+              error_bus_list_array[array_check] = get_serialid[i];
+              array_check += 1;
+              busicon = new daum.maps.MarkerImage(downimage, imageSize, imageOption);
+            }
+            //긴급신고 체크
+            if (get_painc[i] == 1) {
+              one_panic_count += 1;
+              cell1 = row.insertCell(0);
+              cell2 = row.insertCell(1);
+              cell3 = row.insertCell(2);
+              cell4 = row.insertCell(3);
+
+              cell1.innerHTML = get_serialid[i];
+              cell2.innerHTML = get_busroutenum[i];
+              cell3.innerHTML = get_busdrivingnum[i];
+              cell4.innerHTML = '고장';
+              error_bus_list_array[array_check] = get_serialid[i];
+              array_check += 1;
+              busicon = new daum.maps.MarkerImage(downimage, imageSize, imageOption);
+            } else if (get_painc[i] == 2) {
+              two_panic_count += 1;
+              cell1 = row.insertCell(0);
+              cell2 = row.insertCell(1);
+              cell3 = row.insertCell(2);
+              cell4 = row.insertCell(3);
+
+              cell1.innerHTML = get_serialid[i];
+              cell2.innerHTML = get_busroutenum[i];
+              cell3.innerHTML = get_busdrivingnum[i];
+              cell4.innerHTML = '사고';
+              error_bus_list_array[array_check] = get_serialid[i];
+              array_check += 1;
+              busicon = new daum.maps.MarkerImage(downimage, imageSize, imageOption);
+            } else if (get_painc[i] == 3) {
+              three_panic_count += 1;
+              cell1 = row.insertCell(0);
+              cell2 = row.insertCell(1);
+              cell3 = row.insertCell(2);
+              cell4 = row.insertCell(3);
+
+              cell1.innerHTML = get_serialid[i];
+              cell2.innerHTML = get_busroutenum[i];
+              cell3.innerHTML = get_busdrivingnum[i];
+              cell4.innerHTML = '긴급';
+              error_bus_list_array[array_check] = get_serialid[i];
+              array_check += 1;
+              busicon = new daum.maps.MarkerImage(downimage, imageSize, imageOption);
+            }
+
+
+            markers.push(addMarker(markerposition[i]));
+
+
+            busNumUnqi = get_busroutenum2.reduce(function(a, b) {
+              if (a.indexOf(b) < 0) a.push(b);
+              return a;
+            }, []);
+          }
+          $("#BusRunNumber").html(runBusCount);
+          $("#BusRunRouteNum").html(" " + busNumUnqi + " ");
+          // 각 테이블에 숫자 나오는 부분 숫자 매꾸기
+          $("#user_table td:eq(0)").html(one_user_count + "대");
+          $("#user_table td:eq(1)").html(two_user_count + "대");
+          $("#user_table td:eq(2)").html(three_user_count + "대");
+          //$("#ondo_table td:eq(0)").html(ok_ondo_count + "대");
+          //$("#ondo_table td:eq(1)").html(no_ondo_count + "대");
+          $("#ondo_table td:eq(0)").html(no_ondo_count + "대");
+
+
+
+          $("#visag_table td:eq(0)").html(gsensor_count);
+          $("#visag_table td:eq(1)").html(one_panic_count);
+          $("#visag_table td:eq(2)").html(two_panic_count);
+          $("#visag_table td:eq(3)").html(three_panic_count);
+
+          if($("#eq0").html() == 0){
+            $("#eq0").css("color","black");
+          }else {$("#eq0").css("color","red");}
+          if($("#eq1").html() == 0){
+            $("#eq1").css("color","black");
+          }else {$("#eq1").css("color","red");}
+          if($("#eq2").html() == 0){
+            $("#eq2").css("color","black");
+          }else {$("#eq2").css("color","red");}
+          if($("#eq3").html() == 0){
+            $("#eq3").css("color","black");
+          }else {$("#eq3").css("color","red");}
+
+          // 댓수에 맞게 css 수정하기
+          //$("#ondo_table td:eq(0)").css('width',(계산식...흠)+"%");
+
+          function addMarker(markerposition) {
+
+            var iWContent =
+              '<div class="iwrap">' +
+				'<div class="info" style="width:300px;height:100px;">' +
+					'<div class="infoheader" style="width:px;text-align:center;">'+
+								'<span class="select_span">' + get_busroutenum[i] + '번</span>' +
+								'<br />' +
+
+					'</div>'+
+
+
+
+					'<div class="body" style="margin-top:10px;">' +
+
+
+						'<div >'+
+
+						'<div class="gall_container">' +
+
+             '<table class="table" style="text-align: left;color:black;margin-left: 30px;">' +
+
+			 '<tbody>' +
+			   '<tr>' +
+				'<td width="70" height="50" style="text-align: left;" >' +
+				'<img src="./img/temp.png" style="width:40px; height:40px;">' +
+				'<br />' +
+				get_thermometertemperature[i] + 'ºc' +
+				'</td>' +
+				'<td width="70" height="50">' +
+				'<img src="./img/humi.png" style="width:40px; height:40px;">' +
+				'<br />' +
+				get_hygrometerhumidity[i] + '%' +
+				'</td>' +
+
+
+
+				'<td width="70" height="50">' +
+				'<img src="./img/user.png" style="width:40px; height:40px;">' +
+				'<br />' +
+				get_usrcnt[i] + '명' +
+				'</td>' +
+				'<td width="70" height="50">' +
+				'<img src="./img/speed.png" style="width:40px; height:40px;">' +
+				'<br />' +
+				get_busspeed[i] + 'km/h' +
+				'</td>' +
+              '</tr>' +
+
+			  '</tbody>' +
+
+              '</table>' +
+
+
+			'</div>' +
+						 '</div>'+
+
+
+					'<div>'+
+							'<div class="jibun">' +
+
+								'<strong>차량번호</strong> : ' +
+								 get_serialid[i]+
+								'<br />' +
+
+
+								'<strong>현재 정류장</strong> : ' +
+								get_speakerbusstopid[i] +
+								'<br />' +
+
+
+								'<strong>운전자번호</strong> : ' +
+								get_busdrivingnum[i] +
+								'<br />' +
+
+
+								'<strong>운수사</strong> : ' +
+								get_buscompany[i] +
+								'<br />' +
+
+							'</div>' +
+						 '</div>'+
+
+
+
+						'<div>'+
+						 '<button type="button" class="btn btn-info infoButt" style="float:right">상세보기</button>' +
+						 '</div>'+
+
+					'</div>' +
+
+			    '</div>' +
+              '</div>';
+
+
+            marker = new daum.maps.Marker({
+              position: new daum.maps.LatLng(get_gps_x[i], get_gps_y[i]),
+              image: busicon
+            });
+
+            infowindow = new daum.maps.InfoWindow({
+              content: iWContent,
+              removable: true
+            });
+
+
+            daum.maps.event.addListener(marker, 'click', makeClickListener(map, marker, infowindow));
+            //	daum.maps.event.addListener(marker, 'mouseout', makeOutListener(infowindow));
+            return marker;
+          };
+
+          function makeOutListener(infowindow) {
+            return function() {
+              infowindow.close();
+            };
+          }
+
+          function makeClickListener(map, marker, infowindow) {
+            return function() {
+              infowindow.open(map, marker);
+            };
+          }
+
+          markerlist.push(marker);
+        } else {
+          alert("운행 데이터 없음");
+        }
+      }
+    });
+
+
+    if (markerlist.length > 0) {
+      clusterer.addMarkers(markers);
+    }
+  }
+
+
+  function click_table_list() {
+
+    $("#select_bus_text").html(select_text + "(" + total_text + "번)");
+
+    list_table_two_tbody = document.getElementById("list_table_two_tbody");
+
+    if (list_table_two_tbody.rows.length > 0) {
+      $("#list_table_two_tbody").html('');
+    }
+
+    $.ajax({
+      url: '/deuMonitoring_table_select.php',
+      dataType: 'json',
+      type: 'POST',
+      async: false,
+      data: {
+        select_serialid: select_text,
+        time_counting: time_counting
+      },
+      success: function(result) {
+
+        if (result['result'] == true) {
+          select_bus_gpsx = result['bus_gpsx'];
+          select_bus_gpsy = result['bus_gpsy'];
+          time_list = result['time_list'];
+          bus_speed = result['bus_speed'];
+          bus_oxygen = result['bus_oxygen'];
+          bus_absolut = result['bus_absolut'];
+          bus_fuellevel = result['bus_fuellevel'];
+          bus_rpm = result['bus_rpm'];
+          bus_oil = result['bus_oil'];
+          bus_station = result['bus_station'];
+          bus_user = result['bus_user'];
+          bus_ondo = result['bus_ondo'];
+          bus_sumdo = result['bus_sumdo'];
+          bus_direction = result['bus_direction'];
+
+          for (var i = 0; i < time_list.length; i++) {
+            row_two = list_table_two_tbody.insertRow(list_table_two_tbody.length);
+            var cell1 = row_two.insertCell(0);
+            var cell2 = row_two.insertCell(1);
+            var cell3 = row_two.insertCell(2);
+            var cell4 = row_two.insertCell(3);
+            var cell5 = row_two.insertCell(4);
+            var cell6 = row_two.insertCell(5);
+            var cell7 = row_two.insertCell(6);
+            var cell8 = row_two.insertCell(7);
+            var cell9 = row_two.insertCell(8);
+            var cell10 = row_two.insertCell(9);
+            var cell11 = row_two.insertCell(10);
+            var cell12 = row_two.insertCell(11);
+
+            cell1.innerHTML = time_list[i];
+            cell2.innerHTML = bus_speed[i];
+            cell3.innerHTML = bus_oxygen[i];
+            cell4.innerHTML = bus_absolut[i];
+            cell5.innerHTML = bus_fuellevel[i];
+            cell6.innerHTML = bus_rpm[i];
+            cell7.innerHTML = bus_oil[i];
+            cell8.innerHTML = bus_station[i];
+            cell9.innerHTML = bus_user[i];
+            cell10.innerHTML = bus_ondo[i];
+            cell11.innerHTML = bus_sumdo[i];
+            cell12.innerHTML = bus_direction[i];
+          }
+
+          var moveLatLon = new daum.maps.LatLng(select_bus_gpsx[0], select_bus_gpsy[0]);
+          map.setCenter(moveLatLon);
+          map.setLevel(2);
+        } else if (result['result'] == false) {
+          alert("현재 운행 하고있지 않은 차량입니다.");
+        }
+      }
+
+    });
+
+  }
+
+  //맨 오른쪽 상단 하차문 사진
+  var exit_img_id;
+
+  function exitDoorView() {
+
+    var exit_img_id = document.getElementById("exit_door_img");
+
+    if (array_check < 1) {
+      $("#table-users_name").html("이상 징후 차량 없음");
+    } else {
+      //임시 이상징후 차량 발생 리스트에 대한 랜덤으로 타이틀바꾸기
+      var random_count = Math.floor(Math.random() * (array_check) + 1);
+      random_count -= 1;
+
+      var title_name = error_bus_list_array[random_count];
+
+      //렌댐 타이틀에 대한 사진 바꾸기
+      var img_count = Math.floor(Math.random() * 20) + 1;
+
+      //사진 타이틀 바꾸기
+      $('#exit_door_text').html(title_name);
+
+      //사진 이미지 바꾸기
+      exit_img_id.src = "./img/bus_img/" + title_name + "/test-" + img_count + ".jpg";
+
+    }
+  }
+
+  //장애인 예약 실시간 조회
+  function reservationStart() {
+    insert_count = 0;
+    delete_count = 0;
+    exit_count = 0;
+
+    $.ajax({
+      url: '/deuMonitoring_reser_select.php',
+      dataType: 'json',
+      type: 'POST',
+      async: false,
+      success: function(result) {
+        if (result['result'] == true) {
+          carterminal_id_text = result['send_carterminal'];
+          service_text = result['send_service'];
+          station_id = result['send_station'];
+          busnumber = result['send_busnumber'];
+          buslicenseno = result['send_buslicenseno'];
+
+          for (var i = 0; i < service_text.length; i++) {
+            if (service_text[i] == 0) {
+              insert_count += 1;
+            } else if (service_text[i] == 2) {
+              delete_count += 1;
+            } else if (service_text[i] == 1) {
+              exit_count += 1;
+            }
+          }
+        }
+      }
+
+    });
+
+    $("#reservation td:eq(0)").html(insert_count + "명");
+    $("#reservation td:eq(1)").html(exit_count + "명");
+    $("#reservation td:eq(2)").html(delete_count + "명");
+  }
+
+  //환경설정??
+  function settingCheck() {
+    if (user_id == "admin") {
+      openWin = window.open("deuMasterSetting.html?user_id=" + encodeURIComponent(user_id), "childform", "location=no, directories=no,resizable=no,status=no,toolbar=no,menubar=no, width=1240,height=600,left=300, top=150, scrollbars=no");
+    } else {
+      openWin = window.open("deuManagerSetting.html?user_id=" + encodeURIComponent(user_id), "childform", "location=no, directories=no,resizable=no,status=no,toolbar=no,menubar=no, width=1240,height=600,left=300, top=150, scrollbars=no");
+    }
+  }
+
+  //이상발생 테이블 각 컬럼 선택 시 해당 컬럼에 대한 내용 띄우기
+  function violentE() {
+    $("#table-users_name").html("이상 징후 차량 상세정보");
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    $("#click_change_name").html("운전자번호");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+
+    gsensor_count = 0;
+    array_check = 0;
+    error_bus_list_array = [];
+
+    for (var i = 0; i < get_gps_x.length; i++) {
+
+      row = list_table_one_tbody.insertRow(list_table_one_tbody);
+      if (get_gsensor[i] > 0 && (get_painc[i] == 0 || get_painc[i] == 4)) {
+        gsensor_count += 1;
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = get_serialid[i];
+        cell2.innerHTML = get_busroutenum[i];
+        cell3.innerHTML = get_busdrivingnum[i];
+        cell4.innerHTML = '<img src="./img/redcircle.png" alt="" />';
+        error_bus_list_array[array_check] = get_serialid[i];
+        array_check += 1;
+      }
+    }
+    if (gsensor_count < 1) {
+      cell1 = row.insertCell(0);
+      cell2 = row.insertCell(1);
+      cell3 = row.insertCell(2);
+      cell4 = row.insertCell(3);
+
+      cell1.innerHTML = "난폭 차량 없음";
+      cell2.innerHTML = "x";
+      cell3.innerHTML = "x";
+      cell4.innerHTML = "x";
+    }
+  }
+
+  function paincOne() {
+    $("#table-users_name").html("이상 징후 차량 상세정보");
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    $("#click_change_name").html("운전자번호");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+
+    one_panic_count = 0;
+    array_check = 0;
+    error_bus_list_array = [];
+
+    for (var i = 0; i < get_gps_x.length; i++) {
+
+      row = list_table_one_tbody.insertRow(list_table_one_tbody);
+      if (get_painc[i] == 1) {
+        one_panic_count += 1;
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = get_serialid[i];
+        cell2.innerHTML = get_busroutenum[i];
+        cell3.innerHTML = get_busdrivingnum[i];
+        cell4.innerHTML = '<img src="./img/redcircle.png" alt="" />';
+        error_bus_list_array[array_check] = get_serialid[i];
+        array_check += 1;
+      }
+    }
+    if (one_panic_count < 1) {
+      cell1 = row.insertCell(0);
+      cell2 = row.insertCell(1);
+      cell3 = row.insertCell(2);
+      cell4 = row.insertCell(3);
+
+      cell1.innerHTML = "고장 차량 없음";
+      cell2.innerHTML = "x";
+      cell3.innerHTML = "x";
+      cell4.innerHTML = "x";
+    }
+  }
+
+  function paincTwo() {
+    $("#table-users_name").html("이상 징후 차량 상세정보");
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    $("#click_change_name").html("운전자번호");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+
+    two_panic_count = 0;
+    array_check = 0;
+    error_bus_list_array = [];
+
+    for (var i = 0; i < get_gps_x.length; i++) {
+
+      row = list_table_one_tbody.insertRow(list_table_one_tbody);
+      if (get_painc[i] == 2) {
+        two_panic_count += 1;
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = get_serialid[i];
+        cell2.innerHTML = get_busroutenum[i];
+        cell3.innerHTML = get_busdrivingnum[i];
+        cell4.innerHTML = '<img src="./img/redcircle.png" alt="" />';
+        error_bus_list_array[array_check] = get_serialid[i];
+        array_check += 1;
+      }
+    }
+    if (two_panic_count < 1) {
+      cell1 = row.insertCell(0);
+      cell2 = row.insertCell(1);
+      cell3 = row.insertCell(2);
+      cell4 = row.insertCell(3);
+
+      cell1.innerHTML = "사고 차량 없음";
+      cell2.innerHTML = "x";
+      cell3.innerHTML = "x";
+      cell4.innerHTML = "x";
+    }
+  }
+
+  function paincThree() {
+    $("#table-users_name").html("이상 징후 차량 상세정보");
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    $("#click_change_name").html("운전자번호");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+
+    three_panic_count = 0;
+    array_check = 0;
+    error_bus_list_array = [];
+
+    for (var i = 0; i < get_gps_x.length; i++) {
+
+      row = list_table_one_tbody.insertRow(list_table_one_tbody);
+      if (get_painc[i] == 3) {
+        three_panic_count += 1;
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = get_serialid[i];
+        cell2.innerHTML = get_busroutenum[i];
+        cell3.innerHTML = get_busdrivingnum[i];
+        cell4.innerHTML = '<img src="./img/redcircle.png" alt="" />';
+        error_bus_list_array[array_check] = get_serialid[i];
+        array_check += 1;
+      }
+    }
+    if (three_panic_count < 1) {
+      cell1 = row.insertCell(0);
+      cell2 = row.insertCell(1);
+      cell3 = row.insertCell(2);
+      cell4 = row.insertCell(3);
+
+      cell1.innerHTML = "긴급 차량 없음";
+      cell2.innerHTML = "x";
+      cell3.innerHTML = "x";
+      cell4.innerHTML = "x";
+    }
+  }
+
+  // 장애인 예약 현황 클릭 시 테이블 변경
+  function reserClick(click_number) {
+    $("#table-users_name").html("장애인 예약 현황 상세정보");
+
+    $("#click_change_name").html("예약정류장");
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+    insert_count = 0;
+    delete_count = 0;
+    exit_count = 0;
+
+    for (var i = 0; i < carterminal_id_text.length; i++) {
+      row = list_table_one_tbody.insertRow(list_table_one_tbody);
+      if (service_text[i] == click_number) {
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = buslicenseno[i];
+        cell2.innerHTML = busnumber[i];
+        cell3.innerHTML = station_id[i];
+        if (click_number == 0) {
+          cell4.innerHTML = '예약';
+          insert_count += 1;
+        } else if (click_number == 1) {
+          cell4.innerHTML = '완료';
+          exit_count += 1;
+        } else if (click_number == 2) {
+          cell4.innerHTML = '취소';
+          delete_count += 1;
+        }
+
+      }
+    }
+
+    if (click_number == 0) {
+      if (insert_count < 1) {
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = "예약 차량 없음";
+        cell2.innerHTML = "x";
+        cell3.innerHTML = "x";
+        cell4.innerHTML = "x";
+      }
+    } else if (click_number == 1) {
+      if (exit_count < 1) {
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = "완료 차량 없음";
+        cell2.innerHTML = "x";
+        cell3.innerHTML = "x";
+        cell4.innerHTML = "x";
+      }
+    } else if (click_number == 2) {
+      if (delete_count < 1) {
+        cell1 = row.insertCell(0);
+        cell2 = row.insertCell(1);
+        cell3 = row.insertCell(2);
+        cell4 = row.insertCell(3);
+
+        cell1.innerHTML = "취소 차량 없음";
+        cell2.innerHTML = "x";
+        cell3.innerHTML = "x";
+        cell4.innerHTML = "x";
+      }
+    }
+  }
+
+  function userCount(click_count) {
+    $("#table-users_name").html("탑승객 수 상세정보");
+    $("#click_change_name").html("탑승객수");
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+
+    for (var i = 0; i < get_gps_x.length; i++) {
+      row = list_table_one_tbody.insertRow(list_table_one_tbody);
+      if (click_count == 1) {
+        if (get_usrcnt[i] >= user_smoothmin && get_usrcnt[i] < user_smoothmax) {
+          cell1 = row.insertCell(0);
+          cell2 = row.insertCell(1);
+          cell3 = row.insertCell(2);
+          cell4 = row.insertCell(3);
+
+          cell1.innerHTML = get_serialid[i];
+          cell2.innerHTML = get_busroutenum[i];
+          cell3.innerHTML = get_usrcnt[i];
+          cell4.innerHTML = '원활';
+        }
+      } else if (click_count == 2) {
+        if (get_usrcnt[i] >= user_normalmin && get_usrcnt[i] < user_normalmax) {
+          cell1 = row.insertCell(0);
+          cell2 = row.insertCell(1);
+          cell3 = row.insertCell(2);
+          cell4 = row.insertCell(3);
+
+          cell1.innerHTML = get_serialid[i];
+          cell2.innerHTML = get_busroutenum[i];
+          cell3.innerHTML = get_usrcnt[i];
+          cell4.innerHTML = '보통';
+        }
+      } else if (click_count == 3) {
+        if (get_usrcnt[i] >= user_normalmax) {
+          cell1 = row.insertCell(0);
+          cell2 = row.insertCell(1);
+          cell3 = row.insertCell(2);
+          cell4 = row.insertCell(3);
+
+          cell1.innerHTML = get_serialid[i];
+          cell2.innerHTML = get_busroutenum[i];
+          cell3.innerHTML = get_usrcnt[i];
+          cell4.innerHTML = '과밀';
+        }
+      }
+    }
+  }
+
+  function ondoCount(ondo_click_count) {
+    $("#table-users_name").html("실내 온도 상세정보");
+    $("#click_change_name").html("현재온도");
+    list_table_one_tbody = document.getElementById("list_table_one_tbody");
+    //테이블 초기화
+    if (list_table_one_tbody.rows.length > 0) {
+      $("#list_table_one_tbody").html('');
+    }
+
+    for (var i = 0; i < get_gps_x.length; i++) {
+      row = list_table_one_tbody.insertRow(list_table_one_tbody);
+      if (ondo_click_count == 1) {
+        if (get_thermometertemperature[i] >= user_regularmin && get_thermometertemperature[i] < user_regularmax) {
+          cell1 = row.insertCell(0);
+          cell2 = row.insertCell(1);
+          cell3 = row.insertCell(2);
+          cell4 = row.insertCell(3);
+
+          cell1.innerHTML = get_serialid[i];
+          cell2.innerHTML = get_busroutenum[i];
+          cell3.innerHTML = get_thermometertemperature[i];
+          cell4.innerHTML = '정상';
+        }
+      } else if (ondo_click_count == 2) {
+        if (!(get_thermometertemperature[i] >= user_regularmin && get_thermometertemperature[i] < user_regularmax)) {
+          cell1 = row.insertCell(0);
+          cell2 = row.insertCell(1);
+          cell3 = row.insertCell(2);
+          cell4 = row.insertCell(3);
+
+          cell1.innerHTML = get_serialid[i];
+          cell2.innerHTML = get_busroutenum[i];
+          cell3.innerHTML = get_thermometertemperature[i];
+          cell4.innerHTML = '이상';
+        }
+
+      }
+    }
+  }
+
+  //초기값 셋팅
+  function startSettingValue() {
+    var moveLatLon = new daum.maps.LatLng(user_gps_setting_x, user_gps_setting_y);
+    map.setCenter(moveLatLon);
+    map.setLevel(user_map_level);
+  }
+
+
+  //로그아웃
+  function logoutCheck() {
+    location.href = "deuLogin.html";
+  }
+
+  //e메일보내기
+  function email_send_click() {
+    var send_msg = user_id + "/" + select_text + "/" + time_counting;
+    openWin = window.open("deuEmail_Send.html?user_id=" + encodeURIComponent(send_msg), "childform", "location=no, directories=no,resizable=no,status=no,toolbar=no,menubar=no, width=1024,height=600,left=500, top=150, scrollbars=no");
+  }
+
+  var bDisplay = true;
+
+
+  function doDisplay() {
+    if ($(".table-users2").css("display") == "none") {
+      $(".table-users2").show();
+      click_table_list();
+    } else {
+      $(".table-users2").hide();
+    }
+  }
+</script>
+
+<body>
+  <div class="layer">
+    <div class="layer_inner">
+      <div id="map">
+        <header>
+          <nav>
+            <ul class="nav">
+              <li><a href="./deuStatisticsPageTest2.html" target="_blank" id="statis_icon"></a></li>
+              <li><a href="javascript:void(0);" target="_blank" id="setting_icon" onclick="settingCheck()"></a></li>
+              <li><a href="javascript:void(0);" target="_blank" id="logout_icon" onclick="logoutCheck()"></a></li>
+              <div id="existCarNumber">
+                <p>운행차량 수 : <span id="BusRunNumber">0</span></p>
+              </div>
+            </ul>
+          </nav>
+        </header>
+
+        <div class="bubble">
+          <div class="header" id="exit_door_text">
+            차량등록번호
+          </div>
+          <div class="info">
+            <img src="./img/defult.jpg" id="exit_door_img" />
+          </div>
+        </div>
+
+        <div class="table-users">
+          <div class="header" id="table-users_name">이상 징후 차량 상세정보</div>
+          <table>
+            <thead>
+              <tr>
+                <th>차량 등록 번호</th>
+                <th>노선</th>
+                <th id="click_change_name">운전자번호</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="list_table_one_tbody">
+            </tbody>
+          </table>
+        </div>
+
+        <div id="table-user2">
+          <div class="table-users2">
+            <div class="header">
+              <a href="javascript:doDisplay();"> <img src="./img/x-button.png" style="height: 20px"/></a>
+              <a href="javascript:void(0)" class="button" onclick="email_send_click()"><img src="./img/mailIcon.png" style="height: 20px"/></a>
+              <a href="javascript:void(0)" class="button"><img src="./img/smsIcon.png" style="height: 20px"/></a>
+              <a href="javascript:void(0)" class="button"><img src="./img/callIcon.png" style="height: 20px"/></a>
+              <div id="select_bus_text">71바1234 (110-1)</div>
+            </div>
+            <table cellspacing="0">
+              <thead>
+                <tr>
+                  <th>시간</th>
+                  <th>속력</th>
+                  <th>산소량</th>
+                  <th>압력</th>
+                  <th>연료 높이</th>
+                  <th>RPM</th>
+                  <th>오일 온도</th>
+                  <th>최근 정류장</th>
+                  <th>승객 수</th>
+                  <th>온도</th>
+                  <th>습도</th>
+                  <th>방향</th>
+                </tr>
+              </thead>
+              <tbody id="list_table_two_tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-users3">
+          <div class="header">장애인 예약 현황</div>
+          <table cellspacing="0" id="reservation">
+            <thead>
+              <tr>
+                <th><a href="javascript:void(0)" onclick="reserClick(0)">예약</a></th>
+                <th><a href="javascript:void(0)" onclick="reserClick(1)">완료</a></th>
+                <th><a href="javascript:void(0)" onclick="reserClick(2)">취소</a></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-users4">
+          <div class="header">이상 징후 차량</div>
+          <table cellspacing="0" id="visag_table">
+            <thead>
+              <tr>
+                <th><a href="javascript:void(0)" onclick="violentE()">난폭</a></th>
+                <th><a href="javascript:void(0)" onclick="paincOne()">고장</a> </th>
+                <th><a href="javascript:void(0)" onclick="paincTwo()">사고</a></th>
+                <th><a href="javascript:void(0)" onclick="paincThree()">긴급</a></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="eq0">0</td>
+                <td id="eq1">0</td>
+                <td id="eq2">0</td>
+                <td id="eq3">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-users5">
+          <div class="header" ><a href="javascript:void(0)" onclick="userCount(3)">탑승객 과밀 대수</a></div>
+          <table cellspacing="0" id="user_table">
+            <thead><!--
+              <tr>
+                <th>
+                  <a href="javascript:void(0)" >과밀 대수</a>
+                  <a href="javascript:void(0)" onclick="userCount(1)">원활</a>
+                  <div class="bottom_color bc1"></div>
+                  <a href="javascript:void(0)" onclick="userCount(2)">보통</a>
+                  <div class="bottom_color bc2"></div>
+                  <a href="javascript:void(0)" onclick="userCount(3)">과밀</a>
+                  <div class="bottom_color bc3"></div>
+                </th>
+              </tr>-->
+            </thead>
+            <tbody>
+              <tr><!--
+                <td id="pass_blue"><span>0</span></td>
+                <td id="pass_yellow"><span>0</span></td>-->
+                <td id="pass_red"><span>0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-users6">
+          <div class="header" ><a href="javascript:void(0)" onclick="ondoCount(2)">실내 온도 이상 대수</a></div>
+          <table cellspacing="0" id="ondo_table">
+            <thead><!--
+              <tr>
+                <th>
+                  <a href="javascript:void(0)" >비 정상 대수</a>
+
+                  <a href="javascript:void(0)" onclick="ondoCount(1)">정상</a>
+                  <div class="bottom_color bc1"></div>
+                  <a href="javascript:void(0)" onclick="ondoCount(2)">이상</a>
+                  <div class="bottom_color bc3"></div>
+                </th>
+              </tr>-->
+            </thead>
+            <tbody>
+              <tr>
+                <!--<td id="tem_blue"><span>0</span></td>-->
+                <td id="tem_red"><span>0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <marquee scrollamount="5">운행 차량 번호 : <span id="BusRunRouteNum">0</span></marquee>
+
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  temp = location.href.split("?");
+  user_id_split = temp[1].split("&");
+  user_id = user_id_split[0].split("=");
+  user_pw = user_id_split[1].split("=");
+  user_id = user_id[1];
+  user_pw = user_pw[1];
+
+
+  var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
+  var options = { //지도를 생성할 때 필요한 기본 옵션
+    center: new daum.maps.LatLng(35.1795546, 129.0734528), //지도의 중심좌표.
+    level: 8 //지도의 레벨(확대, 축소 정도)
+  };
+
+  map = new daum.maps.Map(container, options); //지도 생성 및 객체 리턴
+
+  // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+  var zoomControl = new daum.maps.ZoomControl();
+  map.addControl(zoomControl, daum.maps.ControlPosition.BOTTOMLEFT);
+
+  // 일반 지도와 스카이뷰로 지도 타입을 전환할 수 있는 지도타입 컨트롤을 생성합니다
+  var mapTypeControl = new daum.maps.MapTypeControl();
+  // 지도에 컨트롤을 추가해야 지도위에 표시됩니다
+  // daum.maps.ControlPosition은 컨트롤이 표시될 위치를 정의하는데 TOPRIGHT는 오른쪽 위를 의미합니다
+  map.addControl(mapTypeControl, daum.maps.ControlPosition.BOTTOMLEFT);
+
+  // 마커 클러스터러를 생성합니다
+  clusterer = new daum.maps.MarkerClusterer({
+    map: map, // 마커들을 클러스터로 관리하고 표시할 지도 객체
+    averageCenter: true, // 클러스터에 포함된 마커들의 평균 위치를 클러스터 마커 위치로 설정
+    minLevel: 5 // 클러스터 할 최소 지도 레벨
+  });
+  map.addOverlayMapTypeId(daum.maps.MapTypeId.TRAFFIC);
+
+
+  $(document).ready(function() {
+
+    $('.table-users').css('height', $(window).height() - 520);
+    $(window).resize(function() {
+      $('.table-users').css('height', $(window).height() - 520);
+    });
+
+    $.ajax({
+      url: "deuDefultSetting_select.php",
+      dataType: 'json',
+      type: 'POST',
+      data: {
+        user_id: user_id
+      },
+      success: function(result) {
+        if (result['result'] == true) {
+          user_smoothmin = result['smoothmin'];
+          user_smoothmax = result['smoothmax'];
+          user_normalmin = result['normalmin'];
+          user_normalmax = result['normalmax'];
+
+          user_regularmin = result['regularmin'];
+          user_regularmax = result['regularmax'];
+
+          user_gps_setting_x = result['gpsx'];
+          user_gps_setting_y = result['gpsy'];
+          user_map_level = result['maplevel'];
+          startSettingValue();
+        } else if (result['result'] == false) {
+          user_gps_setting_x = 35.1795546;
+          user_gps_setting_y = 129.0734528;
+          user_map_level = 8;
+          user_smoothmin = 0;
+          user_smoothmax = 25;
+          user_normalmin = 25;
+          user_normalmax = 36;
+          user_regularmin = 11;
+          user_regularmax = 25;
+        }
+      }
+    });
+
+
+
+
+  });
+
+  interval1 = setInterval("reservationStart()", 5000);
+  interval2 = setInterval("mapStart()", 5000);
+  interval = setInterval("exitDoorView()", 5000);
+
+  //지도위의 버스 상세보기 버튼 클릭 시
+  $(document).on("click", ".infoButt", function(event) {
+    var checkBtn = $(this);
+    select_text = checkBtn.parent().parent();
+    select_text = select_text.children();
+    select_text = select_text.eq(0).text();
+    //  select_text = select_text.substring(0, 3);
+    //location.href="busInfo_Page.html?"+select_text;
+    select_text = select_text.split('a');
+    alert(select_text[0]);
+  });
+
+  $(document).on("click", ".table-users tbody td", function() {
+    var checkBtn = $(this);
+    select_text = checkBtn.parent();
+    select_text = select_text.children();
+    total_text = select_text.eq(1).text();
+    select_text = select_text.eq(0).text();
+    if ($(".table-users2").css("display") == "none") {
+      $(".table-users2").show();
+      click_table_list();
+    } else {
+      $(".table-users2").hide();
+    }
+  });
+</script>
+
+</html>
