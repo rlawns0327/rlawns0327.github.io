@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>123</title>
+</head>
+
+
+<script src="https://unpkg.com/vue"></script>
+
+<script src="https://unpkg.com/vue"></script>
+<script src="https://unpkg.com/vue-material@0.7.1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/vue-material@0.7.1/dist/vue-material.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+
+<script type="text/x-template" id="catalog-item-template">
+
+<md-toolbar>
+  <md-button class="md-icon-button">
+    <md-icon>menu</md-icon>
+  </md-button>
+
+  <h2 class="md-title" style="flex: 1">Default</h2>
+
+  <md-button class="md-icon-button">
+    <md-icon>favorite</md-icon>
+  </md-button>
+</md-toolbar>
+
+<md-toolbar class="md-dense">
+  <md-button class="md-icon-button">
+    <md-icon>menu</md-icon>
+  </md-button>
+
+  <h2 class="md-title" style="flex: 1">Dense</h2>
+
+  <md-button class="md-icon-button">
+    <md-icon>favorite</md-icon>
+  </md-button>
+</md-toolbar>
+
+<md-toolbar class="md-medium">
+  <div class="md-toolbar-container">
+    <md-button class="md-icon-button">
+      <md-icon>menu</md-icon>
+    </md-button>
+
+    <h2 class="md-title" style="flex: 1;">Medium</h2>
+
+    <md-button class="md-icon-button">
+      <md-icon>search</md-icon>
+    </md-button>
+
+    <md-button class="md-icon-button">
+      <md-icon>filter_list</md-icon>
+    </md-button>
+  </div>
+</md-toolbar>
+
+<md-toolbar class="md-large">
+  <div class="md-toolbar-container">
+    <md-button class="md-icon-button">
+      <md-icon>menu</md-icon>
+    </md-button>
+
+    <span style="flex: 1;"></span>
+
+    <md-button class="md-icon-button">
+      <md-icon>search</md-icon>
+    </md-button>
+
+    <md-button class="md-icon-button">
+      <md-icon>filter_list</md-icon>
+    </md-button>
+  </div>
+
+  <div class="md-toolbar-container">
+    <h2 class="md-title">Large</h2>
+  </div>
+</md-toolbar>
+
+    <md-card>
+        <md-card-media>
+            <img :src="imgUrl" alt="People">
+        </md-card-media>
+
+        <md-card-header>
+            <div class="md-title">{{title}}</div>
+            <div class="md-subhead">{{price}} 원</div>
+        </md-card-header>
+
+        <md-card-actions>
+            <md-button>장바구니</md-button>
+            <md-button>바로구매</md-button>
+        </md-card-actions>
+
+        <md-card-content>
+            {{description}}
+        </md-card-content>
+    </md-card>
+
+</script>
+
+<script>
+    Vue.use(VueMaterial)
+    Vue.component('catalog-item', {
+        template: "#catalog-item-template",
+        props: {
+            imgUrl: String,
+            title: String,
+            price: Number,
+            description: String
+        },
+    });
+</script>
+
+
+<body>
+
+<div id="page">
+    <form novalidate @submit.stop.prevent="submit">
+        <md-input-container>
+            <label>검색</label>
+            <md-input v-model="searchQuery"></md-input>
+        </md-input-container>
+    </form>
+
+    <md-layout md-gutter>
+        <md-layout  v-for="item in filteredItems" md-flex-xsmall="100" md-flex-small="50" md-flex-medium="33">
+            <catalog-item :img-url="item.imgUrl" :title="item.title" :price="item.price" :description="item.description"></catalog-item>
+        </md-layout>
+    </md-layout>
+
+
+</div>
+
+
+</body>
+
+
+<script>
+    new Vue({
+        el:'#page',
+        data: {
+            catalogItems:[
+                {imgUrl:'http://blogfiles.naver.net/MjAxODA5MDVfMjM0/MDAxNTM2MTE2NDIzMDE2.tPgmPDFlLBh3f2fRopLl0SAZsf1NfOM3YqqDzteel8cg.LAHM-POys3wR1oS9OUlL4c2cvLc_x2O4CR_Ikvwg0H0g.JPEG.troyflow/%BA%CE%B0%A1%C6%BC_%B5%F0%BA%B8_1.jpg', price: 6200000000, title: '부가티 디보', description:'안녕하세요'},
+                {imgUrl:'http://blogfiles.naver.net/MjAxODA5MDVfMjM0/MDAxNTM2MTE2NDIzMDE2.tPgmPDFlLBh3f2fRopLl0SAZsf1NfOM3YqqDzteel8cg.LAHM-POys3wR1oS9OUlL4c2cvLc_x2O4CR_Ikvwg0H0g.JPEG.troyflow/%BA%CE%B0%A1%C6%BC_%B5%F0%BA%B8_1.jpg', price: 22222225000, title: '부가티 디보', description:'ㄴㄴㄴㄴ'},
+                {imgUrl:'http://shop1.phinf.naver.net/20171115_41/vadeplus_1510753793174fUaD8_JPEG/34060972816955917_-1240423208.jpg', price: 200000, title: '에어팟', description:'Apple'},
+                {imgUrl:'http://gdimg.gmarket.co.kr/994016238/still/160', price: 25000, title: '골프 랑 올양피 골프장갑(왼손) 남성용 4장 골프용품', description:''},
+                {imgUrl:'http://gdimg.gmarket.co.kr/994016238/still/160', price: 25000, title: '골프 랑 올양피 골프장갑(왼손) 남성용 4장 골프용품', description:''},
+                {imgUrl:'http://gdimg.gmarket.co.kr/994016238/still/160', price: 25000, title: '골프 랑 올양피 골프장갑(왼손) 남성용 4장 골프용품', description:''},
+                {imgUrl:'http://gdimg.gmarket.co.kr/728059781/still/160', price: 25000, title: '스윙바로/개인용스크린골프/어프로치/퍼팅/장타/게임', description:''},
+                {imgUrl:'http://gdimg.gmarket.co.kr/994016238/still/160', price: 9999, title: '골프 랑 올양피 골프장갑(왼손) 남성용 4장 골프용품', description:''},
+            ],
+            searchQuery: ''
+        },
+        computed: {
+            filteredItems: function () {
+                var filterKey = this.searchQuery && this.searchQuery.toLowerCase()
+                var data = this.catalogItems
+                if (filterKey) {
+                    data = data.filter(function (row) {
+                        return Object.keys(row).some(function (key) {
+                            return String(row[key]).toLowerCase().indexOf(filterKey.trim()) > -1
+                        })
+                    })
+                }
+                return data
+            }
+        },
+    });
+</script>
+</html>
